@@ -2,7 +2,6 @@ sway_sources = files(
 	'commands.c',
 	'config.c',
 	'criteria.c',
-	'debug-tree.c',
 	'decoration.c',
 	'ipc-json.c',
 	'ipc-server.c',
@@ -23,6 +22,7 @@ sway_sources = files(
 
 	'input/input-manager.c',
 	'input/seat.c',
+	'input/seatop_default.c',
 	'input/seatop_down.c',
 	'input/seatop_move_floating.c',
 	'input/seatop_move_tiling.c',
@@ -30,6 +30,7 @@ sway_sources = files(
 	'input/seatop_resize_tiling.c',
 	'input/cursor.c',
 	'input/keyboard.c',
+	'input/switch.c',
 
 	'config/bar.c',
 	'config/output.c',
@@ -168,6 +169,7 @@ sway_sources = files(
 	'commands/output/mode.c',
 	'commands/output/position.c',
 	'commands/output/scale.c',
+	'commands/output/subpixel.c',
 	'commands/output/transform.c',
 
 	'tree/arrange.c',

@@ -96,6 +96,10 @@ void root_scratchpad_remove_container(struct sway_container *con) {
 void root_scratchpad_show(struct sway_container *con) {
 	struct sway_seat *seat = input_manager_current_seat();
 	struct sway_workspace *new_ws = seat_get_focused_workspace(seat);
+	if (!new_ws) {
+		sway_log(SWAY_DEBUG, "No focused workspace to show scratchpad on");
+		return;
+	}
 	struct sway_workspace *old_ws = con->workspace;
 
 	// If the current con or any of its parents are in fullscreen mode, we
@@ -385,4 +389,18 @@ void root_get_box(struct sway_root *root, struct wlr_box *box) {
 	box->y = root->y;
 	box->width = root->width;
 	box->height = root->height;
+}
+
+void root_rename_pid_workspaces(const char *old_name, const char *new_name) {
+	if (!pid_workspaces.prev && !pid_workspaces.next) {
+		wl_list_init(&pid_workspaces);
+	}
+
+	struct pid_workspace *pw = NULL;
+	wl_list_for_each(pw, &pid_workspaces, link) {
+		if (strcmp(pw->workspace, old_name) == 0) {
+			free(pw->workspace);
+			pw->workspace = strdup(new_name);
+		}
+	}
 }

@@ -265,6 +265,24 @@ set|plus|minus <amount>
 	becomes fullscreen on the same workspace as the first container. In either
 	of those cases, the second container will gain focus.
 
+*title_format* <format>
+	Sets the format of window titles. The following placeholders may be used:
+
+		%title - The title supplied by the window
+		%app_id - The wayland app ID (applicable to wayland windows only)
+		%class - The X11 classname (applicable to xwayland windows only)
+		%instance - The X11 instance (applicable to xwayland windows only)
+		%shell - The protocol the window is using (typically xwayland or
+			xdg_shell)
+
+	This command is typically used with *for_window* criteria. For example:
+
+		for_window [title="."] title_format "<b>%title</b> (%app_id)"
+
+	Note that markup requires pango to be enabled via the *font* command.
+
+	The default format is "%title".
+
 The following commands may be used either in the configuration file or at
 runtime.
 
@@ -300,7 +318,7 @@ runtime.
 	values in X11 (1=left, 2=middle, 3=right, 4=scroll up, 5=scroll down,
 	6=scroll left, 7=scroll right, 8=back, 9=forward). For the latter option,
 	you can find the event names using _libinput debug-events_.
-	
+
 	_--whole-window_, _--border_, and _--exclude-titlebar_ are mouse-only options
 	which affect the region in which the mouse bindings can be triggered.  By
 	default, mouse bindings are only triggered when over the title bar. With the
@@ -322,6 +340,28 @@ runtime.
 
 	*bindcode* [--whole-window] [--border] [--exclude-titlebar] [--release] [--locked] [--input-device=<device>] [--no-warn] <code> <command>
 	is also available for binding with key/button codes instead of key/button names.
+
+*bindswitch* [--locked] [--no-warn] <switch>:<state> <command>
+	Binds <switch> to execute the sway command _command_ on state changes.
+	Supported switches are _lid_ (laptop lid) and _tablet_ (tablet mode)
+	switches. Valid values for _state_ are _on_, _off_ and _toggle. These
+	switches are on when the device lid is shut and when tablet mode is active
+	respectively. _toggle_ is also supported to run a command both when the
+	switch is toggled on or off.
+
+	Unless the flag _--locked_ is set, the command will not be run
+	when a screen locking program is active. By default, if you
+	overwrite a binding, swaynag will give you a warning. To silence this, use
+	the _--no-warn_ flag.
+
+	Example:
+```
+		# Show the virtual keyboard when tablet mode is entered.
+		bindswitch tablet:on busctl call --user sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b true
+
+		# Log a message when the laptop lid is opened or closed.
+		bindswitch lid:toggle exec echo "Lid moved"
+```
 
 *client.<class>* <border> <background> <text> <indicator> <child_border>
 	Configures the color of window borders and title bars. All 5 colors are
@@ -430,7 +470,8 @@ The default colors are:
 
 *floating_maximum_size* <width> x <height>
 	Specifies the maximum size of floating windows. -1 x -1 removes the upper
-	limit.
+	limit. The default is 0 x 0, which will use the width and height of the
+	entire output layout as the maximums
 
 *floating_minimum_size* <width> x <height>
 	Specifies the minimum size of floating windows. The default is 75 x 50.
@@ -532,9 +573,9 @@ The default colors are:
 	Switches to the specified mode. The default mode _default_.
 
 *mode* [--pango_markup] <mode> <mode-subcommands...>
-	The only two valid _mode-subcommands..._ are *bindsym* and *bindcode*.
-	If _--pango_markup_ is given, then _mode_ will be interpreted as pango
-	markup.
+	The only valid _mode-subcommands..._ are *bindsym*, *bindcode*,
+	*bindswitch*, and *set*. If _--pango_markup_ is given, then _mode_ will be
+	interpreted as pango markup.
 
 *mouse_warping* output|container|none
 	If _output_ is specified, the mouse will be moved to new outputs as you
@@ -750,4 +791,4 @@ The following attributes may be matched with:
 
 # SEE ALSO
 
-*sway*(1) *sway-input*(5) *sway-output*(5) *sway-bar*(5)
+*sway*(1) *sway-input*(5) *sway-output*(5) *sway-bar*(5) *sway-ipc*(7)

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#include <wlr/interfaces/wlr_switch.h>
 #include <wlr/types/wlr_box.h>
 #include <xkbcommon/xkbcommon.h>
 #include "../include/config.h"
@@ -29,6 +30,7 @@ enum binding_input_type {
 	BINDING_KEYSYM,
 	BINDING_MOUSECODE,
 	BINDING_MOUSESYM,
+	BINDING_SWITCH
 };
 
 enum binding_flags {
@@ -61,6 +63,16 @@ struct sway_mouse_binding {
 };
 
 /**
+ * A laptop switch binding and an associated command.
+ */
+struct sway_switch_binding {
+	enum wlr_switch_type type;
+	enum wlr_switch_state state;
+	uint32_t flags;
+	char *command;
+};
+
+/**
  * Focus on window activation.
  */
 enum sway_fowa {
@@ -78,6 +90,7 @@ struct sway_mode {
 	list_t *keysym_bindings;
 	list_t *keycode_bindings;
 	list_t *mouse_bindings;
+	list_t *switch_bindings;
 	bool pango;
 };
 
@@ -171,6 +184,7 @@ struct output_config {
 	int x, y;
 	float scale;
 	int32_t transform;
+	enum wl_output_subpixel subpixel;
 
 	char *background;
 	char *background_option;
@@ -585,6 +599,8 @@ bool apply_output_config(struct output_config *oc, struct sway_output *output);
 
 struct output_config *store_output_config(struct output_config *oc);
 
+struct output_config *find_output_config(struct sway_output *output);
+
 void apply_output_config_to_outputs(struct output_config *oc);
 
 void reset_outputs(void);
@@ -600,6 +616,8 @@ int sway_binding_cmp_qsort(const void *a, const void *b);
 int sway_binding_cmp_keys(const void *a, const void *b);
 
 void free_sway_binding(struct sway_binding *sb);
+
+void free_switch_binding(struct sway_switch_binding *binding);
 
 void seat_execute_command(struct sway_seat *seat, struct sway_binding *binding);
 

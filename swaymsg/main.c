@@ -113,7 +113,7 @@ static const char *pretty_type_name(const char *name) {
 }
 
 static void pretty_print_input(json_object *i) {
-	json_object *id, *name, *type, *product, *vendor, *kbdlayout, *events;
+	json_object *id, *name, *type, *product, *vendor, *kbdlayout, *libinput;
 	json_object_object_get_ex(i, "identifier", &id);
 	json_object_object_get_ex(i, "name", &name);
 	json_object_object_get_ex(i, "type", &type);
@@ -139,8 +139,12 @@ static void pretty_print_input(json_object *i) {
 		printf("  Active Keyboard Layout: %s\n", layout ? layout : "(unnamed)");
 	}
 
-	if (json_object_object_get_ex(i, "libinput_send_events", &events)) {
-		printf("  Libinput Send Events: %s\n", json_object_get_string(events));
+	if (json_object_object_get_ex(i, "libinput", &libinput)) {
+		json_object *events;
+		if (json_object_object_get_ex(libinput, "send_events", &events)) {
+			printf("  Libinput Send Events: %s\n",
+					json_object_get_string(events));
+		}
 	}
 
 	printf("\n");
@@ -182,11 +186,12 @@ static void pretty_print_output(json_object *o) {
 	json_object_object_get_ex(o, "focused", &focused);
 	json_object_object_get_ex(o, "active", &active);
 	json_object_object_get_ex(o, "current_workspace", &ws);
-	json_object *make, *model, *serial, *scale, *transform;
+	json_object *make, *model, *serial, *scale, *subpixel, *transform;
 	json_object_object_get_ex(o, "make", &make);
 	json_object_object_get_ex(o, "model", &model);
 	json_object_object_get_ex(o, "serial", &serial);
 	json_object_object_get_ex(o, "scale", &scale);
+	json_object_object_get_ex(o, "subpixel_hinting", &subpixel);
 	json_object_object_get_ex(o, "transform", &transform);
 	json_object *x, *y;
 	json_object_object_get_ex(rect, "x", &x);
@@ -205,6 +210,7 @@ static void pretty_print_output(json_object *o) {
 			"  Current mode: %dx%d @ %f Hz\n"
 			"  Position: %d,%d\n"
 			"  Scale factor: %f\n"
+			"  Subpixel hinting: %s\n"
 			"  Transform: %s\n"
 			"  Workspace: %s\n",
 			json_object_get_string(name),
@@ -217,6 +223,7 @@ static void pretty_print_output(json_object *o) {
 			(float)json_object_get_int(refresh) / 1000,
 			json_object_get_int(x), json_object_get_int(y),
 			json_object_get_double(scale),
+			json_object_get_string(subpixel),
 			json_object_get_string(transform),
 			json_object_get_string(ws)
 		);
@@ -322,6 +329,7 @@ int main(int argc, char **argv) {
 	static struct option long_options[] = {
 		{"help", no_argument, NULL, 'h'},
 		{"monitor", no_argument, NULL, 'm'},
+		{"pretty", no_argument, NULL, 'p'},
 		{"quiet", no_argument, NULL, 'q'},
 		{"raw", no_argument, NULL, 'r'},
 		{"socket", required_argument, NULL, 's'},
@@ -335,6 +343,7 @@ int main(int argc, char **argv) {
 		"\n"
 		"  -h, --help             Show help message and quit.\n"
 		"  -m, --monitor          Monitor until killed (-t SUBSCRIBE only)\n"
+		"  -p, --pretty           Use pretty output even when not using a tty\n"
 		"  -q, --quiet            Be quiet.\n"
 		"  -r, --raw              Use raw output even if using a tty\n"
 		"  -s, --socket <socket>  Use the specified socket.\n"
@@ -346,13 +355,16 @@ int main(int argc, char **argv) {
 	int c;
 	while (1) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "hmqrs:t:v", long_options, &option_index);
+		c = getopt_long(argc, argv, "hmpqrs:t:v", long_options, &option_index);
 		if (c == -1) {
 			break;
 		}
 		switch (c) {
 		case 'm': // Monitor
 			monitor = true;
+			break;
+		case 'p': // Pretty
+			raw = false;
 			break;
 		case 'q': // Quiet
 			quiet = true;
@@ -484,6 +496,7 @@ int main(int argc, char **argv) {
 					printf("%s\n", json_object_to_json_string_ext(obj,
 						JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED));
 				}
+				fflush(stdout);
 				json_object_put(obj);
 			}
 

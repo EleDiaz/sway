@@ -101,6 +101,7 @@ struct sway_container *container_find_resize_parent(struct sway_container *con,
 sway_cmd cmd_assign;
 sway_cmd cmd_bar;
 sway_cmd cmd_bindcode;
+sway_cmd cmd_bindswitch;
 sway_cmd cmd_bindsym;
 sway_cmd cmd_border;
 sway_cmd cmd_client_noop;
@@ -260,6 +261,7 @@ sway_cmd output_cmd_enable;
 sway_cmd output_cmd_mode;
 sway_cmd output_cmd_position;
 sway_cmd output_cmd_scale;
+sway_cmd output_cmd_subpixel;
 sway_cmd output_cmd_transform;
 
 sway_cmd seat_cmd_attach;
